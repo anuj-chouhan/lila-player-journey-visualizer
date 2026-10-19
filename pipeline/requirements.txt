@@ -1,0 +1,4 @@
+pyarrow>=18
+pandas>=2.2
+pillow>=11
+pytest>=8

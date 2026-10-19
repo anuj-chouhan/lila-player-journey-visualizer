@@ -1,0 +1,71 @@
+{
+  "generatedAt": "2026-10-19T09:17:32+00:00",
+  "maps": [
+    {
+      "id": "AmbroseValley",
+      "name": "Ambrose Valley",
+      "scale": 900,
+      "originX": -370,
+      "originZ": -473,
+      "data": "AmbroseValley.json",
+      "matches": 566,
+      "journeys": 836,
+      "dates": [
+        "2026-02-10",
+        "2026-02-11",
+        "2026-02-12",
+        "2026-02-13",
+        "2026-02-14"
+      ],
+      "image": "minimaps/AmbroseValley.webp",
+      "width": 2048,
+      "height": 2048,
+      "sourceWidth": 4320,
+      "sourceHeight": 4320
+    },
+    {
+      "id": "GrandRift",
+      "name": "Grand Rift",
+      "scale": 581,
+      "originX": -290,
+      "originZ": -290,
+      "data": "GrandRift.json",
+      "matches": 59,
+      "journeys": 111,
+      "dates": [
+        "2026-02-10",
+        "2026-02-11",
+        "2026-02-12",
+        "2026-02-13",
+        "2026-02-14"
+      ],
+      "image": "minimaps/GrandRift.webp",
+      "width": 2048,
+      "height": 2046,
+      "sourceWidth": 2160,
+      "sourceHeight": 2158
+    },
+    {
+      "id": "Lockdown",
+      "name": "Lockdown",
+      "scale": 1000,
+      "originX": -500,
+      "originZ": -500,
+      "data": "Lockdown.json",
+      "matches": 171,
+      "journeys": 295,
+      "dates": [
+        "2026-02-10",
+        "2026-02-11",
+        "2026-02-12",
+        "2026-02-13",
+        "2026-02-14"
+      ],
+      "image": "minimaps/Lockdown.webp",
+      "width": 2048,
+      "height": 2048,
+      "sourceWidth": 9000,
+      "sourceHeight": 9000
+    }
+  ]
+}
