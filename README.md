@@ -4,7 +4,7 @@
 
 A browser tool for Level Designers to see how players actually move, fight, loot and die on LILA BLACK's maps, built from 5 days of production telemetry.
 
-**Live:** https://lila-journeys.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md) &nbsp;·&nbsp; **Walkthrough video:** _link coming_
+**Live:** https://lila-journeys.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md) &nbsp;·&nbsp; **Walkthrough:** [step by step below](#walkthrough-5-minutes) · video: _link coming_
 
 [![Replaying a 15-player match on Ambrose Valley](docs/img/screen-replay.jpg)](https://lila-journeys.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e&t=400)
 
@@ -27,6 +27,21 @@ Each screenshot links to that exact view in the live tool.
 | Shareable views | Every filter, and the paused timeline position (`&t=400`), is kept in the URL. Paste a link to show a designer exactly the moment you saw |
 
 Controls: drag to pan · scroll to zoom · double-click to reset · `Space` play/pause · `←/→` ±10 s · `Esc` clear focus.
+
+## Walkthrough (5 minutes)
+
+A guided tour of every major feature. Each step links to the exact view, so you can follow along without setting anything up.
+
+1. **Open the tool** → [lila-journeys.vercel.app](https://lila-journeys.vercel.app). You land on Ambrose Valley with **All matches** selected: all 566 matches are overlaid, each starting at its own t = 0. The header shows the totals for the current selection, and the left sidebar holds every filter.
+2. **Check the map mapping.** Scroll to zoom and drag to pan. Paths follow the roads and stay inside walls, and nothing falls off the map. Double-click to reset the view. Humans are **solid blue**, bots are **dashed orange**.
+3. **Filter.** Click **Grand Rift** or **Lockdown** to switch maps. Click a **day** (you can pick several; Feb 14* is a partial day). Untick **Bots** or **Humans** to isolate one side. The header totals and the marker counts in the sidebar update as you go.
+4. **Pick a match.** The list shows the busiest matches first, because 93% of matches have only one recorded player. Open the [10 Feb · 03:19 match](https://lila-journeys.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e): 1 human, 14 bots and 15 kills. The **Players** panel lists everyone in it, with how and when their run ended.
+5. **Play it back.** Press **▶** (or `Space`) at 20×. Circles are humans and squares are bots. Markers appear as the match unfolds: **▲** kill, **✕** death, **◆** storm death, **■** loot (tick *Loot* to show it). The red bars above the scrubber show where the combat is, so click near a tall bar to jump to a fight.
+6. **Inspect and follow.** Hover over any marker for details: what happened, who did it, and when. Click it, or click a name in **Players**, to follow that player. Their path stays full strength and everyone else dims. `Esc` clears the selection.
+7. **Heatmaps.** Go back to **All matches** and choose a heatmap: [Deaths](https://lila-journeys.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths), [Traffic](https://lila-journeys.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=traffic), Kills, Storm or Loot. Heatmaps follow every filter *and* the timeline, so press **▶** to watch the hotspots build up over a match.
+8. **Storm deaths.** Open [Lockdown's storm view](https://lila-journeys.vercel.app/#map=Lockdown&markers=storm&heat=storm) and drag the scrubber from 0. Nothing appears until about 11 minutes, which is the basis for [insight 2](INSIGHTS.md#2-the-storm-is-a-late-match-timer-and-it-kills-over-a-third-of-late-players-on-lockdown-and-grand-rift).
+9. **Share a moment.** Pause anywhere and copy the URL. It keeps the map, filters, match and time (e.g. `&t=400`), so whoever opens it sees exactly what you saw.
+10. **About the data.** The **About the data** button explains what the data does and doesn't contain, and lists the keyboard shortcuts. The [data gotchas](#data-gotchas-we-caught) below cover what the dataset's README got wrong and how the tool handles it.
 
 ## Data gotchas we caught
 
