@@ -1,8 +1,18 @@
 # LILA BLACK · Player Journey Explorer
 
+[![CI](https://github.com/anuj-chouhan/lila-player-journey-visualizer/actions/workflows/ci.yml/badge.svg)](https://github.com/anuj-chouhan/lila-player-journey-visualizer/actions/workflows/ci.yml)
+
 A browser tool for Level Designers to see how players actually move, fight, loot and die on LILA BLACK's maps, built from 5 days of production telemetry.
 
-**Live:** https://lila-player-journey-visualizer-eta.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md)
+**Live:** https://lila-player-journey-visualizer-eta.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md) &nbsp;·&nbsp; **Walkthrough video:** _link coming_
+
+[![Replaying a 15-player match on Ambrose Valley](docs/img/screen-replay.jpg)](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e&t=400)
+
+| Deaths heatmap, all 566 Ambrose Valley matches | Storm deaths on Lockdown | All Grand Rift matches, 5 min in |
+|---|---|---|
+| [![](docs/img/screen-deaths.jpg)](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths) | [![](docs/img/screen-storm.jpg)](https://lila-player-journey-visualizer-eta.vercel.app/#map=Lockdown&markers=storm&heat=storm) | [![](docs/img/screen-grandrift.jpg)](https://lila-player-journey-visualizer-eta.vercel.app/#map=GrandRift&t=300) |
+
+Each screenshot links to that exact view in the live tool.
 
 ## What it does
 
@@ -10,11 +20,11 @@ A browser tool for Level Designers to see how players actually move, fight, loot
 |---|---|
 | Player journeys on the correct minimap | World `(x, z)` → minimap pixels, verified against all 89k events ([proof](ARCHITECTURE.md#coordinate-mapping)) |
 | Humans vs bots | Humans: solid blue paths, ● heads. Bots: dashed orange paths, ■ heads |
-| Event markers | ▲ kill (white dot = PvP), ✕ death (red = killed by player), ◆ storm death, ■ loot. Hover for details, click to follow that player |
+| Event markers | ▲ kill (white dot = PvP), ✕ death (red = killed by player), ◆ storm death, ■ loot. Hover for details, click to follow that player (everyone else dims) |
 | Filters | Map, day (multi-select), match (busiest first), humans/bots, each marker type |
 | Timeline / playback | Play, scrub, 1–60× speed, with a combat-density strip so you can jump to the fights. In "All matches" mode every match is aligned at t = 0 |
 | Heatmaps | Traffic, kills, deaths, storm deaths, loot. They respect every filter and the timeline position |
-| Shareable views | Every filter is kept in the URL, so you can paste a link to show a designer exactly what you saw |
+| Shareable views | Every filter, and the paused timeline position (`&t=400`), is kept in the URL. Paste a link to show a designer exactly the moment you saw |
 
 Controls: drag to pan · scroll to zoom · double-click to reset · `Space` play/pause · `←/→` ±10 s · `Esc` clear focus.
 
@@ -44,6 +54,8 @@ The dataset's README is wrong or silent on a few points. Each one would have bro
 cd web
 npm ci
 npm run dev            # http://localhost:5173
+npm test               # unit tests + a contract test on the generated data
+npm run lint
 ```
 
 To regenerate the data from the raw telemetry:
@@ -58,7 +70,9 @@ python pipeline/build_data.py # writes web/public/data/*  (~12 s)
 python pipeline/verify_overlay.py  # optional: regenerates docs/img/*_overlay.jpg
 ```
 
-**Environment variables:** none.
+**Environment variables:** none. **Requirements:** Node 20+, Python 3.11+ (only for regenerating data).
+
+CI (GitHub Actions) runs the pipeline tests, frontend lint, tests and production build on every push.
 
 ## Deploy
 
@@ -72,7 +86,8 @@ web/                React app
   public/data/      generated: manifest.json, <Map>.json, minimaps/*.webp
   src/lib/          data decoding, filters, heatmap, marker drawing (no React)
   src/components/   MapCanvas, Sidebar, Timeline, PlayerList, AboutData
-docs/img/           coordinate-mapping proof overlays
+docs/img/           coordinate-mapping proof overlays, screenshots
+.github/workflows/  CI
 ARCHITECTURE.md     design, data flow, coordinate mapping, trade-offs
 INSIGHTS.md         three findings from using the tool
 ```
