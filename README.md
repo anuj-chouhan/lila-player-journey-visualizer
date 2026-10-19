@@ -4,13 +4,13 @@
 
 A browser tool for Level Designers to see how players actually move, fight, loot and die on LILA BLACK's maps, built from 5 days of production telemetry.
 
-**Live:** https://lila-player-journey-visualizer-eta.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md) &nbsp;·&nbsp; **Walkthrough video:** _link coming_
+**Live:** https://lila-journeys.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md) &nbsp;·&nbsp; **Walkthrough video:** _link coming_
 
-[![Replaying a 15-player match on Ambrose Valley](docs/img/screen-replay.jpg)](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e&t=400)
+[![Replaying a 15-player match on Ambrose Valley](docs/img/screen-replay.jpg)](https://lila-journeys.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e&t=400)
 
 | Deaths heatmap, all 566 Ambrose Valley matches | Storm deaths on Lockdown | All Grand Rift matches, 5 min in |
 |---|---|---|
-| [![](docs/img/screen-deaths.jpg)](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths) | [![](docs/img/screen-storm.jpg)](https://lila-player-journey-visualizer-eta.vercel.app/#map=Lockdown&markers=storm&heat=storm) | [![](docs/img/screen-grandrift.jpg)](https://lila-player-journey-visualizer-eta.vercel.app/#map=GrandRift&t=300) |
+| [![](docs/img/screen-deaths.jpg)](https://lila-journeys.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths) | [![](docs/img/screen-storm.jpg)](https://lila-journeys.vercel.app/#map=Lockdown&markers=storm&heat=storm) | [![](docs/img/screen-grandrift.jpg)](https://lila-journeys.vercel.app/#map=GrandRift&t=300) |
 
 Each screenshot links to that exact view in the live tool.
 
@@ -37,9 +37,9 @@ The dataset's README is wrong or silent on a few points. Each one would have bro
 | `ts` = milliseconds elapsed in the match | `ts` holds **Unix epoch seconds** in a `timestamp[ms]` column | Read as ms, every match lasts < 1 s. Read as seconds, dates line up with the `February_10…14` folders, matches last 2–15 min, and positions are sampled every 5 s | Raw integer used as seconds. Times are made relative to each match's first event |
 | Minimaps are 1024×1024 | 4320², **2160×2158**, 9000² | Image headers | Convert world → UV (0–1) and multiply by the real image size. Images re-encoded to 2048 px WebP |
 | Bots emit `BotPosition`/`BotKill`/`BotKilled` | Some bot IDs also emit `Position` (636) and `Loot` (115) | Per-file event counts | Actor type comes from the `user_id` format only (numeric = bot) |
-| `BotKill` = "human killed a bot" | In bot files `BotKill`/`BotKilled` also appear: the "Bot" prefix names the **opponent**, so bots fight bots | 480 such events. A human's kills never coincide with a recorded bot death | Labels are written from the file owner's perspective |
+| `BotKill`/`BotKilled` = a human killed / was killed by a bot | They also appear in **bots' own files** (183 / 297), meaning that bot got a kill / died | Cross-checking files (same match, ≤ 3 s, ≤ 60 units): 44 bot kills line up with another bot's death, 25 human kills with a bot's death, 5 bot kills with the human's death. So bots kill bots as well as humans | Tooltips are worded from the file owner's side: "This bot got a kill" / "Bot died" |
 | One file per player per match | 743 of 796 matches contain **one** journey. Only ~50 have 7–16 | `match_id` grouping | Match list sorts busiest first. The tool explains this in "About the data" |
-| *(not mentioned)* | 1,505 exact duplicate rows (mostly loot ×2–7), 175 rows logged after the player died, 3 files not time-sorted, 1 match crossing a day folder | Pipeline cleaning report | Duplicates collapsed (shown as ×N), journeys trimmed at first death, stable sort by time, grouped by `match_id` rather than folder |
+| *(not mentioned)* | 1,505 exact duplicate rows (mostly loot ×2–7), 175 rows logged after the player died, 3 files not time-sorted, 1 journey split across two day folders (1,243 files → 1,242 journeys) | Pipeline cleaning report | Duplicates collapsed (shown as ×N), journeys trimmed at first death, stable sort by time, files merged by (`user_id`, `match_id`) rather than by folder |
 
 ## Tech stack
 
@@ -50,7 +50,7 @@ The dataset's README is wrong or silent on a few points. Each one would have bro
 ## Run it locally
 
 ```bash
-# 1. Frontend only (processed data is committed in web/public/data)
+# Frontend only: the processed data is committed in web/public/data
 cd web
 npm ci
 npm run dev            # http://localhost:5173

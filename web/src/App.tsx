@@ -24,15 +24,30 @@ export default function App() {
 
   // ---- load manifest + initial filters from the URL ----
   useEffect(() => {
+    let mapIds: string[] = []
+    const applyHash = () => {
+      const fromHash = hashToFilters(window.location.hash, mapIds)
+      const tParam = Number(new URLSearchParams(window.location.hash.slice(1)).get('t'))
+      linkTime.current = tParam > 0 ? tParam : null
+      setFilters({ ...DEFAULT_FILTERS, mapId: mapIds[0], ...fromHash })
+      // Same selection, different moment: the selection-change reset won't run, so jump here.
+      setPlaying(false)
+      setTime(tParam > 0 ? tParam : Infinity)
+    }
     loadManifest()
       .then((m) => {
         setManifest(m)
-        const fromHash = hashToFilters(window.location.hash, m.maps.map((x) => x.id))
-        const tParam = Number(new URLSearchParams(window.location.hash.slice(1)).get('t'))
-        if (tParam > 0) linkTime.current = tParam
-        setFilters({ ...DEFAULT_FILTERS, mapId: m.maps[0].id, ...fromHash })
+        mapIds = m.maps.map((x) => x.id)
+        applyHash()
       })
       .catch((e) => setError(String(e)))
+    // A link pasted into an already-open tab (or Back/Forward) only changes the hash.
+    // Our own history.replaceState calls don't fire this event.
+    const onHash = () => {
+      if (mapIds.length) applyHash()
+    }
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
   const meta = manifest?.maps.find((m) => m.id === filters?.mapId)
@@ -48,8 +63,10 @@ export default function App() {
 
   // A match id from a shared URL may not exist on this map.
   useEffect(() => {
-    if (data && filters?.matchId && !data.matches.some((m) => m.id === filters.matchId)) update({ matchId: null })
-  }, [data, filters?.matchId, update])
+    // Only judge against the data of the map the filters point at (not the previous map's).
+    if (!data || !filters?.matchId || data.meta.id !== filters.mapId) return
+    if (!data.matches.some((m) => m.id === filters.matchId)) update({ matchId: null })
+  }, [data, filters?.matchId, filters?.mapId, update])
 
   const selection = useMemo(() => (data && filters && data.meta.id === filters.mapId ? select(data, filters) : null), [data, filters])
   const duration = selection?.duration ?? 0

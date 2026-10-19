@@ -7,7 +7,7 @@ Each finding links to the exact view in the tool. The numbers come from the clea
 ## 1. Ambrose Valley's east third is a corridor, not a destination
 
 **What caught my eye.** With every match overlaid, the kill and death heatmaps on Ambrose Valley light up a tight band through the middle of the map, while the eastern side stays dark even though paths clearly run through it.
-→ [Deaths heatmap](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths) · [Traffic heatmap](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=traffic)
+→ [Deaths heatmap](https://lila-journeys.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths) · [Traffic heatmap](https://lila-journeys.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=traffic)
 
 **Evidence.**
 - **42%** of human journeys on Ambrose pass through the east third of the map (minimap x > 60%). But that area holds only **8.9%** of human movement samples, **6.8%** of loot pickups and **1.3%** of combat events. Only **1 of 296** human deaths to bots happened there.
@@ -28,7 +28,7 @@ Each finding links to the exact view in the tool. The numbers come from the clea
 ## 2. The storm is a late-match timer, and it kills over a third of late players on Lockdown and Grand Rift
 
 **What caught my eye.** Playing back matches with storm-death markers on, every ◆ appears in the last few minutes, and the markers are scattered across the map rather than lined up at one edge.
-→ [Lockdown storm deaths](https://lila-player-journey-visualizer-eta.vercel.app/#map=Lockdown&paths=0&markers=storm&heat=storm) (scrub the timeline: nothing until about 11 min)
+→ [Lockdown storm deaths](https://lila-journeys.vercel.app/#map=Lockdown&paths=0&markers=storm&heat=storm) (scrub the timeline: nothing until about 11 min)
 
 **Evidence.**
 - All **39** storm deaths happen between **10.9 and 14.8 minutes** into a match. None happen earlier.
@@ -56,8 +56,8 @@ Each finding links to the exact view in the tool. The numbers come from the clea
 
 ## 3. Bots, not players, are the real opposition, and they hit new players hardest
 
-**What caught my eye.** In replays of the busiest matches, almost every ✕ (a death) is white, meaning the player was killed by a bot. Across the whole dataset there are only **3** player-vs-player kills.
-→ [A busy Ambrose match](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e) · [Deaths heatmap](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths)
+**What caught my eye.** In replays of the busiest matches, there's almost never a red ✕ (killed by a player) and almost never a ▲ with a white dot (PvP kill). Across the whole dataset there are only **3** player-vs-player kills.
+→ [A busy Ambrose match](https://lila-journeys.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e) · [Deaths heatmap](https://lila-journeys.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths)
 
 **Evidence.**
 - **51%** of human journeys end in a death to a bot, 5% to the storm, and 0.4% to another human. The other 43% have no recorded death, so they extracted or left.
@@ -71,11 +71,11 @@ Each finding links to the exact view in the tool. The numbers come from the clea
   | 4th–10th | 192 | 40% |
   | 11th+ | 122 | 35% |
 
-- Players who die to bots still collect only half the loot (9.3 vs 20.4 items) and half the kills (1.9 vs 3.8).
+- Players who die to a bot finish with about half the loot (9.3 vs 20.4 items) and half the kills (1.9 vs 3.8) of players who don't.
 - *Caveats:* part of the gap is survivorship, because players who keep playing may simply be better. Dying to a bot in the first match didn't change whether a player came back in this 5-day window (57% vs 56% returned).
 
 **Actionable.**
-1. Audit bot placement near the early-game loot clusters, especially Ambrose north-central, the hotspot in the deaths heatmap. Give approach routes more cover, or push bot patrols back so the first fight isn't an ambush.
+1. Audit bot placement near the early-game loot clusters, especially Ambrose north-central, the worst spot for early deaths. Give approach routes more cover, or push bot patrols back so the first fight isn't an ambush.
 2. Consider softer bot placement or behaviour for a player's first few matches.
 3. Since PvP is almost absent, bots *are* the combat experience, so tune bot encounters the way you'd tune PvP hotspots.
 

@@ -161,7 +161,7 @@ function Sidebar({ manifest, data, filters, selection, heatOpacity, onChange, on
             <span className="count">{counts[c.id].toLocaleString()}</span>
           </label>
         ))}
-        <p className="hint">▲ with a white dot = PvP kill · white ✕ = killed by bot · red ✕ = killed by a player</p>
+        <p className="hint">▲ with a white dot = PvP kill · red ✕ = killed by a player · white ✕ = other deaths (humans killed by bots, bots dying)</p>
       </section>
 
       <section>

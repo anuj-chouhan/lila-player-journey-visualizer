@@ -36,10 +36,10 @@ There's evidence for each of these in the README's "Data gotchas" table.
 |---|---|
 | `ts` documented as match-ms, but that gives < 1 s matches | Epoch **seconds**. Match time = t − the match's first event |
 | Bots logging human-style events | Bot ⇔ numeric `user_id`, regardless of event name |
-| `BotKill`/`BotKilled` inside bot files | "Bot" names the *opponent*, so read from the file owner's view (bots fight bots) |
+| `BotKill`/`BotKilled` inside bot files | Read from the file owner's side: the bot got a kill / died. Cross-checks show it's usually against other bots |
 | Kill rows carry only the logger's position | Kill marker = killer position, death marker = victim position |
 | Duplicates, events after death | Collapse duplicates to one marker ×N, and end each journey at its first death |
-| Match date when a match crosses midnight | The day folder most of its rows came from |
+| A match crossing midnight (one journey split over two folders) | Merge files by (user, match). Date = the folder most of its rows came from |
 | 93% of matches have one recorded player | Treat the data as a sample. Busy matches are listed first, and "All matches" aligns every match at t = 0 |
 
 ## Trade-offs

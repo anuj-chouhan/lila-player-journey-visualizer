@@ -4,22 +4,24 @@ export const HUMAN_COLOR = '#38bdf8'
 export const BOT_COLOR = '#fb923c'
 
 interface EventMeta {
-  label: string
+  /** Short name; depends on whether the journey's owner is a bot. */
+  label: (bot: boolean) => string
   /** Explanation from the perspective of the journey's owner. */
   describe: (bot: boolean) => string
   category: MarkerCategory
   color: string
 }
 
-// Event names are logged from the file owner's point of view, and the "Bot" prefix names the
-// *opponent*: in a bot's own file BotKill means it killed another bot (see ARCHITECTURE.md).
+// Events are logged by the file's owner. In a human's file BotKill/BotKilled mean "killed a bot" /
+// "killed by a bot" (per the data README). In a bot's own file they mean the bot got a kill / died;
+// cross-checking files shows its victims and killers are mostly other bots, sometimes the human.
 export const EVENTS: Record<EventCode, EventMeta> = {
-  K: { label: 'PvP kill', describe: () => 'Killed a human player', category: 'kills', color: '#f43f5e' },
-  BK: { label: 'Bot kill', describe: (bot) => (bot ? 'Killed another bot' : 'Killed a bot'), category: 'kills', color: '#f43f5e' },
-  D: { label: 'Killed by player', describe: () => 'Killed by a human player', category: 'deaths', color: '#f8fafc' },
-  BD: { label: 'Killed by bot', describe: () => 'Killed by a bot', category: 'deaths', color: '#f8fafc' },
-  S: { label: 'Storm death', describe: () => 'Died to the storm', category: 'storm', color: '#a855f7' },
-  L: { label: 'Loot', describe: () => 'Picked up an item', category: 'loot', color: '#facc15' },
+  K: { label: () => 'PvP kill', describe: () => 'Killed a human player', category: 'kills', color: '#f43f5e' },
+  BK: { label: () => 'Bot kill', describe: (bot) => (bot ? 'This bot got a kill' : 'Killed a bot'), category: 'kills', color: '#f43f5e' },
+  D: { label: () => 'Killed by player', describe: () => 'Killed by a human player', category: 'deaths', color: '#f8fafc' },
+  BD: { label: (bot) => (bot ? 'Bot died' : 'Killed by bot'), describe: (bot) => (bot ? 'This bot was killed' : 'Killed by a bot'), category: 'deaths', color: '#f8fafc' },
+  S: { label: () => 'Storm death', describe: () => 'Died to the storm', category: 'storm', color: '#a855f7' },
+  L: { label: () => 'Loot', describe: () => 'Picked up an item', category: 'loot', color: '#facc15' },
 }
 
 export const CATEGORIES: { id: MarkerCategory; label: string; codes: EventCode[]; color: string }[] = [

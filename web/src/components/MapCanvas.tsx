@@ -352,7 +352,7 @@ export default function MapCanvas({ data, selection, filters, time, heatmap, hea
         >
           <div className="tooltip-title">
             <span className="dot" style={{ background: EVENTS[hover.e.code].color }} />
-            {EVENTS[hover.e.code].label}
+            {EVENTS[hover.e.code].label(hoverJourney.bot)}
             {hover.e.count > 1 && <span className="muted"> ×{hover.e.count}</span>}
           </div>
           <div>{EVENTS[hover.e.code].describe(hoverJourney.bot)}</div>

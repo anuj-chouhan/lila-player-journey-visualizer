@@ -7,7 +7,7 @@ export default function AboutData({ onClose }: { onClose: () => void }) {
           <button className="link" onClick={onClose} aria-label="Close">✕</button>
         </div>
         <p>
-          5 days (Feb 10–14, 2026) of LILA BLACK production telemetry: 1,243 player journeys across 796 matches on 3 maps.
+          5 days (Feb 10–14, 2026) of LILA BLACK production telemetry: 1,243 files making up 1,242 player journeys (one journey is split across two day folders) in 796 matches on 3 maps.
           A few things work differently from what you might expect:
         </p>
         <ul>
@@ -30,7 +30,7 @@ export default function AboutData({ onClose }: { onClose: () => void }) {
           <li>
             <strong>Kills mark the killer’s position</strong>, deaths mark the victim’s position. Each event is logged by
             one side only, so a kill and the matching death rarely both appear. PvP is rare (3 kills in the whole
-            dataset). Most human deaths are to bots, and bots also fight each other.
+            dataset). Most human deaths are to bots, and bots also kill each other.
           </li>
           <li>
             <strong>Cleaned:</strong> 1,505 duplicate rows (mostly repeated loot pickups, shown as ×N) and 175 rows

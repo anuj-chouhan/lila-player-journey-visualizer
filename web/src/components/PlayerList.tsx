@@ -39,7 +39,7 @@ export default function PlayerList({ journeys, focus, onFocus }: Props) {
                   {j.bot ? '■ Bot' : '● Human'} {shortId(j.userId)}
                 </span>
                 <span className="muted small">
-                  {OUTCOME[j.outcome]} · {formatClock(j.t[j.t.length - 1])}
+                  {j.bot && j.outcome === 'killedByBot' ? 'Killed' : OUTCOME[j.outcome]} · {formatClock(j.t[j.t.length - 1])}
                   {kills > 0 && ` · ${kills} kill${kills > 1 ? 's' : ''}`}
                   {loot > 0 && ` · ${loot} loot`}
                 </span>
