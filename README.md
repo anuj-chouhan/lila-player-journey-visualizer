@@ -2,7 +2,7 @@
 
 A browser tool for Level Designers to see how players actually move, fight, loot and die on LILA BLACK's maps, built from 5 days of production telemetry.
 
-**Live:** https://lila-player-journey-visualizer.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md)
+**Live:** https://lila-player-journey-visualizer-eta.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md)
 
 ## What it does
 
