@@ -29,64 +29,77 @@ export const CATEGORIES: { id: MarkerCategory; label: string; codes: EventCode[]
   { id: 'loot', label: 'Loot', codes: ['L'], color: EVENTS.L.color },
 ]
 
-/** Draw a marker centred on (x, y) in the current canvas space. `r` is the radius in canvas units. */
+/** Draw one marker centred on (x, y) in the current canvas space. `r` is the radius in canvas units. */
 export function drawMarker(ctx: CanvasRenderingContext2D, code: EventCode, x: number, y: number, r: number) {
+  drawMarkers(ctx, code, [x], [y], r)
+}
+
+/**
+ * Draw many markers of one type with a single path per pass (a handful of draw calls instead of
+ * one per marker — the difference between ~18 and 60 fps with all loot visible).
+ */
+export function drawMarkers(ctx: CanvasRenderingContext2D, code: EventCode, xs: ArrayLike<number>, ys: ArrayLike<number>, r: number) {
+  const n = xs.length
+  if (n === 0) return
   const { category, color } = EVENTS[code]
-  ctx.fillStyle = color
-  ctx.strokeStyle = 'rgba(0,0,0,0.85)'
-  ctx.lineWidth = r * 0.35
   ctx.beginPath()
   switch (category) {
-    case 'kills': {
+    case 'kills':
       // Upward triangle; PvP kills get a filled white core so they stand out.
-      ctx.moveTo(x, y - r * 1.15)
-      ctx.lineTo(x + r, y + r * 0.75)
-      ctx.lineTo(x - r, y + r * 0.75)
-      ctx.closePath()
-      ctx.fill()
-      ctx.stroke()
-      if (code === 'K') {
-        ctx.beginPath()
-        ctx.fillStyle = '#fff'
-        ctx.arc(x, y + r * 0.1, r * 0.35, 0, Math.PI * 2)
-        ctx.fill()
+      for (let i = 0; i < n; i++) {
+        const x = xs[i], y = ys[i]
+        ctx.moveTo(x, y - r * 1.15)
+        ctx.lineTo(x + r, y + r * 0.75)
+        ctx.lineTo(x - r, y + r * 0.75)
+        ctx.closePath()
       }
-      return
+      break
+    case 'storm':
+      for (let i = 0; i < n; i++) {
+        const x = xs[i], y = ys[i]
+        ctx.moveTo(x, y - r * 1.2)
+        ctx.lineTo(x + r, y)
+        ctx.lineTo(x, y + r * 1.2)
+        ctx.lineTo(x - r, y)
+        ctx.closePath()
+      }
+      break
+    case 'loot': {
+      const s = r * 0.7
+      for (let i = 0; i < n; i++) ctx.rect(xs[i] - s, ys[i] - s, s * 2, s * 2)
+      break
     }
     case 'deaths': {
-      // Bold X. Killed-by-player uses a red outline to separate it from killed-by-bot.
+      // Bold X with a dark outline. Killed-by-player is red, killed-by-bot is white.
       const a = r * 0.9
+      for (let i = 0; i < n; i++) {
+        const x = xs[i], y = ys[i]
+        ctx.moveTo(x - a, y - a); ctx.lineTo(x + a, y + a)
+        ctx.moveTo(x + a, y - a); ctx.lineTo(x - a, y + a)
+      }
       ctx.lineCap = 'round'
       ctx.strokeStyle = 'rgba(0,0,0,0.9)'
       ctx.lineWidth = r * 0.9
-      ctx.moveTo(x - a, y - a); ctx.lineTo(x + a, y + a)
-      ctx.moveTo(x + a, y - a); ctx.lineTo(x - a, y + a)
       ctx.stroke()
-      ctx.beginPath()
       ctx.strokeStyle = code === 'D' ? '#f43f5e' : color
       ctx.lineWidth = r * 0.45
-      ctx.moveTo(x - a, y - a); ctx.lineTo(x + a, y + a)
-      ctx.moveTo(x + a, y - a); ctx.lineTo(x - a, y + a)
       ctx.stroke()
       ctx.lineCap = 'butt'
       return
     }
-    case 'storm': {
-      ctx.moveTo(x, y - r * 1.2)
-      ctx.lineTo(x + r, y)
-      ctx.lineTo(x, y + r * 1.2)
-      ctx.lineTo(x - r, y)
-      ctx.closePath()
-      ctx.fill()
-      ctx.stroke()
-      return
+  }
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.strokeStyle = 'rgba(0,0,0,0.85)'
+  ctx.lineWidth = r * 0.35
+  ctx.stroke()
+  if (code === 'K') {
+    ctx.beginPath()
+    for (let i = 0; i < n; i++) {
+      ctx.moveTo(xs[i] + r * 0.35, ys[i] + r * 0.1)
+      ctx.arc(xs[i], ys[i] + r * 0.1, r * 0.35, 0, Math.PI * 2)
     }
-    case 'loot': {
-      const s = r * 0.7
-      ctx.rect(x - s, y - s, s * 2, s * 2)
-      ctx.fill()
-      ctx.stroke()
-      return
-    }
+    ctx.fillStyle = '#fff'
+    ctx.fill()
   }
 }

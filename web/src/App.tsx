@@ -19,6 +19,8 @@ export default function App() {
   const [speed, setSpeed] = useState(20)
   const [heatOpacity, setHeatOpacity] = useState(0.7)
   const [about, setAbout] = useState(false)
+  // A shared link may point at a moment in the match (#…&t=400).
+  const linkTime = useRef<number | null>(null)
 
   // ---- load manifest + initial filters from the URL ----
   useEffect(() => {
@@ -26,6 +28,8 @@ export default function App() {
       .then((m) => {
         setManifest(m)
         const fromHash = hashToFilters(window.location.hash, m.maps.map((x) => x.id))
+        const tParam = Number(new URLSearchParams(window.location.hash.slice(1)).get('t'))
+        if (tParam > 0) linkTime.current = tParam
         setFilters({ ...DEFAULT_FILTERS, mapId: m.maps[0].id, ...fromHash })
       })
       .catch((e) => setError(String(e)))
@@ -40,11 +44,6 @@ export default function App() {
     return () => { live = false }
   }, [meta])
 
-  // ---- keep the URL in sync so any view is shareable ----
-  useEffect(() => {
-    if (filters) history.replaceState(null, '', `#${filtersToHash(filters)}`)
-  }, [filters])
-
   const update = useCallback((patch: Partial<Filters>) => setFilters((f) => (f ? { ...f, ...patch } : f)), [])
 
   // A match id from a shared URL may not exist on this map.
@@ -57,11 +56,20 @@ export default function App() {
 
   // Changing what is selected shows the full picture again.
   const selKey = `${filters?.mapId}|${filters?.matchId}|${filters?.dates.join()}`
+  const ready = filters !== null
   useEffect(() => {
+    if (!ready) return
     setPlaying(false)
-    setTime(Infinity)
-  }, [selKey])
+    setTime(linkTime.current ?? Infinity)
+    linkTime.current = null
+  }, [selKey, ready])
   const t = Math.min(time, duration)
+
+  // ---- keep the URL in sync so any view is shareable (time only while paused mid-match) ----
+  const hash = filters ? filtersToHash(filters) + (!playing && duration > 0 && t < duration ? `&t=${Math.floor(t)}` : '') : null
+  useEffect(() => {
+    if (hash !== null) history.replaceState(null, '', `#${hash}`)
+  }, [hash])
 
   // ---- playback ----
   const last = useRef(0)
@@ -105,10 +113,12 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [t, duration, update])
 
+  // Timestamps are whole seconds, so the heatmap can only change when the clock crosses one.
+  const heatTime = Math.floor(t)
   const heat = useMemo(() => {
     if (!selection || !filters || filters.heatmap === 'none') return null
-    return buildHeatmap(selection.journeys, selection.events, heatCodes(filters.heatmap), t)
-  }, [selection, filters, t])
+    return buildHeatmap(selection.journeys, selection.events, heatCodes(filters.heatmap), heatTime)
+  }, [selection, filters, heatTime])
 
   const stats = useMemo(() => {
     if (!selection) return null
@@ -118,7 +128,6 @@ export default function App() {
       humans: new Set(selection.journeys.filter((j) => !j.bot).map((j) => j.userId)).size,
       bots: new Set(selection.journeys.filter((j) => j.bot).map((j) => j.userId)).size,
       ...c,
-      loot: selection.events.filter((e) => e.code === 'L').reduce((s, e) => s + e.count, 0),
     }
   }, [selection])
 

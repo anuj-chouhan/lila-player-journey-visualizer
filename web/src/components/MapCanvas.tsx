@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { dataUrl, formatClock, lastIndexAtOrBefore, shortId } from '../lib/data'
-import { BOT_COLOR, EVENTS, HUMAN_COLOR, drawMarker } from '../lib/events'
+import { BOT_COLOR, EVENTS, HUMAN_COLOR, drawMarkers } from '../lib/events'
 import { CODE_TO_CATEGORY, type Filters, type Selection } from '../lib/filters'
 import type { GameEvent, MapData } from '../lib/types'
 
@@ -33,6 +33,8 @@ export default function MapCanvas({ data, selection, filters, time, heatmap, hea
   const [hover, setHover] = useState<{ e: GameEvent; x: number; y: number } | null>(null)
   const [, forceRender] = useState(0)
   const frame = useRef(0)
+  const pathCacheRef = useRef<PathCache | null>(null)
+  if (!pathCacheRef.current) pathCacheRef.current = createPathCache()
 
   const W = data.meta.width
   const H = data.meta.height
@@ -85,63 +87,108 @@ export default function MapCanvas({ data, selection, filters, time, heatmap, hea
     const px = 1 / k // one screen pixel in map units
     const focus = filters.focusJourney
     const many = selection.journeys.length > 30
+    // Under a heatmap the paths become context, not the main signal.
+    const baseAlpha = focus !== null ? 0.2 : (many ? 0.35 : 0.9) * (heatmap ? 0.4 : 1)
+    const lineW = (many ? 1.2 : 2) * px
 
     if (filters.paths) {
+      // 1. Completed segments come from an offscreen cache that only grows during playback.
+      const cacheCanvas = updatePathCache(pathCacheRef.current!, {
+        selection, focus, time, W, H, lineW, alpha: baseAlpha, px,
+        width: canvas.width,
+        height: canvas.height,
+        key: `${focus}|${baseAlpha}|${k}|${x}|${y}|${canvas.width}x${canvas.height}|${dpr}`,
+        transform: [dpr * k, 0, 0, dpr * k, dpr * x, dpr * y],
+      })
+      ctx.save()
+      ctx.setTransform(1, 0, 0, 1, 0, 0)
+      ctx.drawImage(cacheCanvas, 0, 0)
+      ctx.restore()
+
+      // 2. The partial segment from each player's last sample to "now", batched per style.
       ctx.lineJoin = 'round'
       ctx.lineCap = 'round'
-      const drawPath = (j: (typeof selection.journeys)[number], emphasised: boolean) => {
-        const last = lastIndexAtOrBefore(j.t, time)
-        if (last < 0) return
-        ctx.strokeStyle = j.bot ? BOT_COLOR : HUMAN_COLOR
-        // Under a heatmap the paths become context, not the main signal.
-        const base = (many ? 0.35 : 0.9) * (heatmap ? 0.4 : 1)
-        ctx.globalAlpha = focus === null ? base : emphasised ? 1 : 0.12
-        ctx.lineWidth = (emphasised && focus !== null ? 3 : many ? 1.2 : 2) * px
-        ctx.setLineDash(j.bot ? [5 * px, 4 * px] : [])
+      ctx.lineWidth = lineW
+      ctx.globalAlpha = baseAlpha
+      for (const bot of [false, true]) {
         ctx.beginPath()
-        ctx.moveTo(j.u[0] * W, j.v[0] * H)
-        for (let i = 1; i <= last; i++) ctx.lineTo(j.u[i] * W, j.v[i] * H)
-        const head = interpolate(j, last, time)
+        for (const j of selection.journeys) {
+          if (j.bot !== bot || j.index === focus) continue
+          const last = lastIndexAtOrBefore(j.t, time)
+          if (last < 0 || last >= j.t.length - 1) continue
+          const head = interpolate(j, last, time)!
+          ctx.moveTo(j.u[last] * W, j.v[last] * H)
+          ctx.lineTo(head[0] * W, head[1] * H)
+        }
+        ctx.strokeStyle = bot ? BOT_COLOR : HUMAN_COLOR
+        ctx.setLineDash(bot ? [5 * px, 4 * px] : [])
+        ctx.stroke()
+      }
+
+      // 3. The followed player is drawn live on top, full strength.
+      const fj = focus !== null ? selection.journeys.find((j) => j.index === focus) : undefined
+      const last = fj ? lastIndexAtOrBefore(fj.t, time) : -1
+      if (fj && last >= 0) {
+        ctx.globalAlpha = 1
+        ctx.lineWidth = 3 * px
+        ctx.strokeStyle = fj.bot ? BOT_COLOR : HUMAN_COLOR
+        ctx.setLineDash(fj.bot ? [5 * px, 4 * px] : [])
+        ctx.beginPath()
+        ctx.moveTo(fj.u[0] * W, fj.v[0] * H)
+        for (let i = 1; i <= last; i++) ctx.lineTo(fj.u[i] * W, fj.v[i] * H)
+        const head = interpolate(fj, last, time)
         if (head) ctx.lineTo(head[0] * W, head[1] * H)
         ctx.stroke()
       }
-      for (const j of selection.journeys) if (j.index !== focus) drawPath(j, false)
-      const fj = focus !== null ? selection.journeys.find((j) => j.index === focus) : undefined
-      if (fj) drawPath(fj, true)
       ctx.setLineDash([])
       ctx.globalAlpha = 1
     }
 
-    // Event markers
+    // Event markers, batched per type (and per highlight level when following a player).
     const visible = selection.events.filter((e) => e.t <= time && filters.markers[CODE_TO_CATEGORY[e.code]])
     // Shrink markers when thousands overlap so clusters stay readable.
     const markerScale = visible.length > 2000 ? 0.6 : visible.length > 400 ? 0.75 : 1
     for (const code of MARKER_ORDER) {
-      for (const e of visible) {
-        if (e.code !== code) continue
-        ctx.globalAlpha = focus === null || e.journey === focus ? 1 : 0.25
-        drawMarker(ctx, e.code, e.u * W, e.v * H, (e.code === 'L' ? 3.5 : 6) * markerScale * px)
+      for (const dim of focus === null ? [false] : [true, false]) {
+        const xs: number[] = []
+        const ys: number[] = []
+        for (const e of visible) {
+          if (e.code !== code || (focus !== null && (e.journey !== focus) !== dim)) continue
+          xs.push(e.u * W)
+          ys.push(e.v * H)
+        }
+        ctx.globalAlpha = dim ? 0.45 : 1
+        drawMarkers(ctx, code, xs, ys, (code === 'L' ? 3.5 : 6) * markerScale * px)
       }
     }
     ctx.globalAlpha = 1
 
     // Live position heads for players still alive at `time` (only meaningful mid-playback).
     if (filters.paths) {
-      for (const j of selection.journeys) {
-        const n = j.t.length
-        if (time < j.t[0] || time >= j.t[n - 1]) continue
-        const head = interpolate(j, lastIndexAtOrBefore(j.t, time), time)
-        if (!head) continue
-        ctx.globalAlpha = focus === null || focus === j.index ? 1 : 0.3
-        ctx.fillStyle = j.bot ? BOT_COLOR : HUMAN_COLOR
-        ctx.strokeStyle = '#0b1020'
-        ctx.lineWidth = 1.5 * px
-        ctx.beginPath()
-        const r = 5 * px
-        if (j.bot) ctx.rect(head[0] * W - r, head[1] * H - r, r * 2, r * 2)
-        else ctx.arc(head[0] * W, head[1] * H, r, 0, Math.PI * 2)
-        ctx.fill()
-        ctx.stroke()
+      const r = (many ? 3 : 5) * px // hundreds of heads in "All matches" would bury the map
+      for (const bot of [false, true]) {
+        for (const dim of focus === null ? [false] : [true, false]) {
+          ctx.beginPath()
+          let any = false
+          for (const j of selection.journeys) {
+            if (j.bot !== bot || (focus !== null && (j.index !== focus) !== dim)) continue
+            const n = j.t.length
+            if (time < j.t[0] || time >= j.t[n - 1]) continue
+            const head = interpolate(j, lastIndexAtOrBefore(j.t, time), time)!
+            const hx = head[0] * W
+            const hy = head[1] * H
+            if (bot) ctx.rect(hx - r, hy - r, r * 2, r * 2)
+            else { ctx.moveTo(hx + r, hy); ctx.arc(hx, hy, r, 0, Math.PI * 2) }
+            any = true
+          }
+          if (!any) continue
+          ctx.globalAlpha = dim ? 0.45 : 1
+          ctx.fillStyle = bot ? BOT_COLOR : HUMAN_COLOR
+          ctx.strokeStyle = '#0b1020'
+          ctx.lineWidth = 1.5 * px
+          ctx.fill()
+          ctx.stroke()
+        }
       }
       ctx.globalAlpha = 1
     }
@@ -329,3 +376,80 @@ function interpolate(j: { t: Float64Array; u: Float32Array; v: Float32Array }, l
 
 const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v))
 
+
+// ---- path cache ----
+// During playback paths only ever grow, so completed segments are drawn once into an offscreen
+// canvas and each frame only appends the samples that became visible since the last frame.
+// Any change of view, selection, styling, or time going backwards rebuilds it from scratch.
+
+interface PathCache {
+  canvas: HTMLCanvasElement
+  selection: Selection | null
+  key: string
+  time: number
+  /** Last sample index already drawn, per entry of selection.journeys (-1 = nothing). */
+  drawn: Int32Array
+}
+
+function createPathCache(): PathCache {
+  return { canvas: document.createElement('canvas'), selection: null, key: '', time: -1, drawn: new Int32Array(0) }
+}
+
+interface CacheInput {
+  selection: Selection
+  focus: number | null
+  time: number
+  W: number
+  H: number
+  lineW: number
+  alpha: number
+  px: number
+  /** Device-pixel size of the main canvas. */
+  width: number
+  height: number
+  key: string
+  transform: [number, number, number, number, number, number]
+}
+
+function updatePathCache(cache: PathCache, inp: CacheInput): HTMLCanvasElement {
+  const { selection, focus, time, W, H, lineW, alpha, px, width, height, key, transform } = inp
+  const c = cache.canvas
+  const ctx = c.getContext('2d')!
+  const rebuild = cache.selection !== selection || cache.key !== key || time < cache.time
+  if (rebuild) {
+    if (c.width !== width || c.height !== height) {
+      c.width = width
+      c.height = height
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    ctx.clearRect(0, 0, c.width, c.height)
+    cache.selection = selection
+    cache.key = key
+    cache.drawn = new Int32Array(selection.journeys.length).fill(-1)
+  }
+  cache.time = time
+  ctx.setTransform(...transform)
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+  ctx.lineWidth = lineW
+  ctx.globalAlpha = alpha
+  const js = selection.journeys
+  for (let ji = 0; ji < js.length; ji++) {
+    const j = js[ji]
+    if (j.index === focus) continue
+    const last = lastIndexAtOrBefore(j.t, time)
+    const from = cache.drawn[ji]
+    if (last <= from || last < 1) continue
+    // One stroke per journey keeps overlapping routes visibly denser, as before.
+    ctx.strokeStyle = j.bot ? BOT_COLOR : HUMAN_COLOR
+    ctx.setLineDash(j.bot ? [5 * px, 4 * px] : [])
+    ctx.beginPath()
+    const start = Math.max(0, from)
+    ctx.moveTo(j.u[start] * W, j.v[start] * H)
+    for (let i = start + 1; i <= last; i++) ctx.lineTo(j.u[i] * W, j.v[i] * H)
+    ctx.stroke()
+    cache.drawn[ji] = last
+  }
+  ctx.setLineDash([])
+  return c
+}

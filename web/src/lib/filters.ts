@@ -70,7 +70,8 @@ export const CODE_TO_CATEGORY = Object.fromEntries(
 
 export function countByCategory(events: GameEvent[]): Record<MarkerCategory, number> {
   const out: Record<MarkerCategory, number> = { kills: 0, deaths: 0, storm: 0, loot: 0 }
-  for (const e of events) out[CODE_TO_CATEGORY[e.code]] += 1
+  // Duplicate pickups were collapsed into one event with a count; count them all.
+  for (const e of events) out[CODE_TO_CATEGORY[e.code]] += e.count
   return out
 }
 
