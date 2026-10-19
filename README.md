@@ -4,7 +4,7 @@
 
 A browser tool for Level Designers to see how players actually move, fight, loot and die on LILA BLACK's maps, built from 5 days of production telemetry.
 
-**Live:** https://lila-journeys.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md) &nbsp;·&nbsp; **Walkthrough:** [step by step below](#walkthrough-5-minutes) · video: _link coming_
+**Live:** https://lila-journeys.vercel.app &nbsp;·&nbsp; **Docs:** [ARCHITECTURE.md](ARCHITECTURE.md) · [INSIGHTS.md](INSIGHTS.md) &nbsp;·&nbsp; **Walkthrough:** [step by step below](#walkthrough-5-minutes)
 
 [![Replaying a 15-player match on Ambrose Valley](docs/img/screen-replay.jpg)](https://lila-journeys.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e&t=400)
 
