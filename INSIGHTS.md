@@ -57,7 +57,7 @@ Each finding links to the exact view in the tool. The numbers come from the clea
 ## 3. Bots, not players, are the real opposition, and they hit new players hardest
 
 **What caught my eye.** In replays of the busiest matches, almost every ✕ (a death) is white, meaning the player was killed by a bot. Across the whole dataset there are only **3** player-vs-player kills.
-→ [A busy Ambrose match](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e&markers=kills%2Cdeaths%2Cstorm) · [Deaths heatmap](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths)
+→ [A busy Ambrose match](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&match=b971c686-07f6-4378-ad00-71b0b610414e) · [Deaths heatmap](https://lila-player-journey-visualizer-eta.vercel.app/#map=AmbroseValley&paths=0&markers=none&heat=deaths)
 
 **Evidence.**
 - **51%** of human journeys end in a death to a bot, 5% to the storm, and 0.4% to another human. The other 43% have no recorded death, so they extracted or left.

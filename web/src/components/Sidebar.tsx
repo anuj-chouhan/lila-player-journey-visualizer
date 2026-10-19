@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { formatClock, formatDate, formatStartTime } from '../lib/data'
 import { BOT_COLOR, CATEGORIES, HUMAN_COLOR } from '../lib/events'
 import { countByCategory, type Filters, type Selection } from '../lib/filters'
@@ -25,7 +25,7 @@ const HEATMAPS: { id: HeatmapKind; label: string; hint: string }[] = [
   { id: 'loot', label: 'Loot', hint: 'Where items are picked up' },
 ]
 
-export default function Sidebar({ manifest, data, filters, selection, heatOpacity, onChange, onHeatOpacity }: Props) {
+function Sidebar({ manifest, data, filters, selection, heatOpacity, onChange, onHeatOpacity }: Props) {
   const [sort, setSort] = useState<'players' | 'time'>('players')
   const dates = useMemo(() => {
     const all = Array.from(new Set(manifest.maps.flatMap((m) => m.dates))).sort()
@@ -196,3 +196,6 @@ export default function Sidebar({ manifest, data, filters, selection, heatOpacit
     </aside>
   )
 }
+
+// Playback re-renders App ~60x/s; nothing here depends on time, so skip those renders.
+export default memo(Sidebar)

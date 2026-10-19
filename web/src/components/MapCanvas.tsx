@@ -147,13 +147,19 @@ export default function MapCanvas({ data, selection, filters, time, heatmap, hea
     }
   }, [image, heatmap, heatOpacity, selection, filters, time, W, H])
 
+  // `draw` changes on every playback tick. Keep the latest one in a ref so `schedule` and the
+  // resize observer stay stable; re-creating the observer each tick reset (= cleared) the canvas.
+  const drawRef = useRef(draw)
   const schedule = useCallback(() => {
     cancelAnimationFrame(frame.current)
-    frame.current = requestAnimationFrame(draw)
-  }, [draw])
+    frame.current = requestAnimationFrame(() => drawRef.current())
+  }, [])
 
   // Props changed: paint now (no frame of lag); pan/zoom go through schedule().
-  useLayoutEffect(draw, [draw])
+  useLayoutEffect(() => {
+    drawRef.current = draw
+    draw()
+  }, [draw])
 
   // ---- sizing ----
   useEffect(() => {
@@ -163,16 +169,23 @@ export default function MapCanvas({ data, selection, filters, time, heatmap, hea
       const { width, height } = wrap.getBoundingClientRect()
       sizeRef.current = { w: width, h: height }
       const dpr = window.devicePixelRatio || 1
-      canvas.width = Math.round(width * dpr)
-      canvas.height = Math.round(height * dpr)
-      canvas.style.width = `${width}px`
-      canvas.style.height = `${height}px`
+      const pw = Math.round(width * dpr)
+      const ph = Math.round(height * dpr)
+      // Assigning canvas.width clears the bitmap, so only do it when the size really changed.
+      if (canvas.width !== pw || canvas.height !== ph) {
+        canvas.width = pw
+        canvas.height = ph
+        canvas.style.width = `${width}px`
+        canvas.style.height = `${height}px`
+      }
       if (!userMovedRef.current) fit()
-      schedule()
+      drawRef.current() // repaint in the same frame as the resize: no blank flash
     })
     ro.observe(wrap)
     return () => ro.disconnect()
-  }, [fit, schedule])
+  }, [fit])
+
+  useEffect(() => () => cancelAnimationFrame(frame.current), [])
 
   // Re-fit when the map changes.
   useEffect(() => {

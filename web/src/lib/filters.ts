@@ -84,10 +84,13 @@ export function filtersToHash(f: Filters): string {
   if (!f.humans) p.set('humans', '0')
   if (!f.bots) p.set('bots', '0')
   if (!f.paths) p.set('paths', '0')
+  // Only write what differs from the defaults, so a plain view has a short link.
   const on = (Object.keys(f.markers) as MarkerCategory[]).filter((k) => f.markers[k])
-  p.set('markers', on.join(',') || 'none')
+  const defaultOn = (Object.keys(DEFAULT_FILTERS.markers) as MarkerCategory[]).filter((k) => DEFAULT_FILTERS.markers[k])
+  if (on.join() !== defaultOn.join()) p.set('markers', on.join(',') || 'none')
   if (f.heatmap !== 'none') p.set('heat', f.heatmap)
-  return p.toString()
+  // Keep commas readable instead of %2C.
+  return p.toString().replace(/%2C/g, ',')
 }
 
 const HEATMAPS: HeatmapKind[] = ['none', 'traffic', 'kills', 'deaths', 'storm', 'loot']
